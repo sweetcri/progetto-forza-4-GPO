@@ -75,8 +75,8 @@ github              |  versionamento codice | gestione del  |                 |
 
 | software di terze parti      | utilizzo | informazioni aggiuntive      | obbligatorio/facoltativo|
 |:----------------------------:|:--------:|:----------------------------:|:-----------------------:|
-| Marco     |  25 | Milano     |
-| Lucia     |  30 | Roma       |
+| python     |  25 | Milano     |
+| github     |  30 | Roma       |
 
 5. Strumenti software
 5.1 Ambienti di sviluppo: Visual Studio Code / IntelliJ IDEA
