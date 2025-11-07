@@ -1,6 +1,6 @@
 Documento di Specifica dei Requisiti Software (SRS)
 
-Azienda – Gruppo di lavoro
+Azienda – Gruppo di lavoro\n\n\n\n
 Nome azienda: D&G Softwarehouse
 Reparto interno: Ufficio Tecnico e Sviluppo
 Membri:
