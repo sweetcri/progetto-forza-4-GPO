@@ -63,15 +63,6 @@ Non sono richieste misure avanzate di sicurezza.
 Interfaccia chiara, intuitiva e adatta anche a utenti non esperti.
 
 4. Integrazione di terze parti
-------------------------------------------------------------------------------|
-software di terze   |      utilizzo         | informazioni  | obbligatorio/   |
-parti               |                       | aggiuntive    | facoltativo     |
---------------------|-----------------------|-------------  |-----------------|
-python              |  interfaccia grafica  |creazione GUI  | obbligatorio    |
---------------------|-----------------------|-------------- |-----------------|
-github              |  versionamento codice | gestione del  |                 |
-                    |                       | progetto      |obbligatorio     |
-------------------------------------------------------------------------------|
 
 | software di terze parti      | utilizzo                  | informazioni aggiuntive      | obbligatorio/facoltativo|
 |:----------------------------:|:-------------------------:|:----------------------------:|:-----------------------:|
