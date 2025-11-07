@@ -72,12 +72,11 @@ python              |  interfaccia grafica  |creazione GUI  | obbligatorio    |
 github              |  versionamento codice | gestione del  |                 |
                     |                       | progetto      |obbligatorio     |
 ------------------------------------------------------------------------------|
-|allineato al centro|allineato a destra|allineato a sinistra| 
-|:---:|---:|:---| 
-|32|6|8|
-|17|16|6|
-|15|20|16|
-|12|12|12| 
+
+| Nome      | Età | Città      |
+|:----------|:---:|-----------:|
+| Marco     |  25 | Milano     |
+| Lucia     |  30 | Roma       |
 
 5. Strumenti software
 5.1 Ambienti di sviluppo: Visual Studio Code / IntelliJ IDEA
