@@ -1,6 +1,6 @@
 Documento di Specifica dei Requisiti Software (SRS)
 
-Azienda – Gruppo di lavoro\n\n\n\n
+Azienda – Gruppo di lavoro
 Nome azienda: D&G Softwarehouse
 Reparto interno: Ufficio Tecnico e Sviluppo
 Membri:
@@ -72,6 +72,8 @@ python              |  interfaccia grafica  |creazione GUI  | obbligatorio    |
 github              |  versionamento codice | gestione del  |                 |
                     |                       | progetto      |obbligatorio     |
 ------------------------------------------------------------------------------|
+|allineato al centro|allineato a destra|allineato a sinistra| 
+|:---:|---:|:---| 
 
 5. Strumenti software
 5.1 Ambienti di sviluppo: Visual Studio Code / IntelliJ IDEA
