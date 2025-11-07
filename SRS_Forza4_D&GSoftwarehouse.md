@@ -73,10 +73,10 @@ github              |  versionamento codice | gestione del  |                 |
                     |                       | progetto      |obbligatorio     |
 ------------------------------------------------------------------------------|
 
-| software di terze parti      | utilizzo | informazioni aggiuntive      | obbligatorio/facoltativo|
-|:----------------------------:|:--------:|:----------------------------:|:-----------------------:|
-| python     |  25 | Milano     |
-| github     |  30 | Roma       |
+| software di terze parti      | utilizzo                  | informazioni aggiuntive      | obbligatorio/facoltativo|
+|:----------------------------:|:-------------------------:|:----------------------------:|:-----------------------:|
+| python                       |  interfaccia grafica      | creazione GUI                |obbligatorio
+| github                       |  versionamento codice     | gestione del progetto        |obbligatorio
 
 5. Strumenti software
 5.1 Ambienti di sviluppo: Visual Studio Code / IntelliJ IDEA
