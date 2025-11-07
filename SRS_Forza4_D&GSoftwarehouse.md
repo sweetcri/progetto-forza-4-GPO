@@ -74,6 +74,10 @@ github              |  versionamento codice | gestione del  |                 |
 ------------------------------------------------------------------------------|
 |allineato al centro|allineato a destra|allineato a sinistra| 
 |:---:|---:|:---| 
+|32|6|8|
+|17|16|6|
+|15|20|16|
+|12|12|12| 
 
 5. Strumenti software
 5.1 Ambienti di sviluppo: Visual Studio Code / IntelliJ IDEA
