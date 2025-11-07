@@ -73,8 +73,8 @@ github              |  versionamento codice | gestione del  |                 |
                     |                       | progetto      |obbligatorio     |
 ------------------------------------------------------------------------------|
 
-| Nome      | Età | Città      |
-|:----------|:---:|-----------:|
+| software di terze parti      | utilizzo | informazioni aggiuntive      | obbligatorio/facoltativo|
+|:----------------------------:|:--------:|:----------------------------:|:-----------------------:|
 | Marco     |  25 | Milano     |
 | Lucia     |  30 | Roma       |
 
