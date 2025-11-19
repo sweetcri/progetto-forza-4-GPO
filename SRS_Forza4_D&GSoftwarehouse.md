@@ -7,7 +7,7 @@ Membri:<br>
 • Marco Guarinoni – Project Manager<br><br>
 
 Nome del Progetto<br>
-Forza 4<br><br>
+4InLine<br><br>
 
 Categoria<br>
 Applicazione desktop (eventualmente adattabile a versione web in futuro)<br><br>
