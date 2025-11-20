@@ -71,9 +71,8 @@ Interfaccia chiara, intuitiva e adatta anche a utenti non esperti.<br><br>
 5. Strumenti software<br>
 5.1 Ambienti di sviluppo: Visual Studio Code / IntelliJ IDEA<br>
 5.2 Sistemi di controllo delle versioni: Git e GitHub<br>
-5.3 Editor di database: non applicabile<br>
-5.4 Strumenti per il test: Debugger IDE, test manuali di partita<br>
-5.5 Framework: python<br><br>
+5.3 Strumenti per il test: Debugger IDE, test manuali di partita<br>
+5.4 Framework: python<br><br>
 
 6. Scadenze<br>
 Inizio sviluppo: 19/10/2025<br>
