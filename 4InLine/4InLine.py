@@ -264,13 +264,13 @@ def show_stats():
 
     switch_screen(stats_frame)
 
-#vari frame------------------------------------------
+#------------------vari frame-----------------------
 menu_frame = tk.Frame(root, bg=BG_COLOR)
 game_frame = tk.Frame(root, bg=BG_COLOR)
 history_frame = tk.Frame(root, bg=BG_COLOR)
 stats_frame = tk.Frame(root, bg=BG_COLOR)
 
-#menu--------------------------------------------
+#frame menu--------------------------------------------
 tk.Label(menu_frame, text="4inLine",
          font=("Times New Roman",42,"bold"),
          fg=GOLD, bg=BG_COLOR).pack(pady=30)
@@ -283,7 +283,7 @@ menu_buttons = tk.Frame(menu_frame, bg=BG_COLOR)
 menu_buttons.pack(pady=40)
 update_menu_buttons()
 
-#gioco----------------------------------------------
+#frame gioco----------------------------------------------
 top = tk.Frame(game_frame, bg=BG_COLOR)
 top.pack(fill="x")
 
