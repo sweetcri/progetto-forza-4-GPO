@@ -1,5 +1,15 @@
 import tkinter as tk
 from PIL import Image, ImageTk
+import pygame
+import os  # Necessario per gestire i percorsi dei file
+
+# ---------------- CONFIGURAZIONE PERCORSI ----------------
+# Ottiene la cartella dove si trova fisicamente questo file .py
+BASE_PATH = os.path.dirname(os.path.abspath(__file__))
+
+def get_path(filename):
+    """Restituisce il percorso assoluto di un file nella cartella dello script."""
+    return os.path.join(BASE_PATH, filename)
 
 # ---------------- COSTANTI GRAFICHE ----------------
 BG_COLOR = "#121212"
@@ -11,7 +21,7 @@ GOLD_PIECE = "#D4AF37"
 
 ROWS, COLS = 6, 7
 CELL_SIZE = 80
-WINDOW_WIDTH, WINDOW_HEIGHT = 900, 700
+WINDOW_WIDTH, WINDOW_HEIGHT = 1024, 900
 DROP_SPEED = 14
 
 TITLE_FONT = ("Impact", 56)
@@ -19,6 +29,41 @@ SUB_FONT = ("Helvetica", 14)
 BTN_FONT = ("Helvetica", 18, "bold")
 BTN_BG = "#1E1E1E"
 BTN_HOVER = "#2A2A2A"
+
+# ---------------- INIZIALIZZAZIONE AUDIO ----------------
+pygame.mixer.init()
+audio_muted = False
+music_loaded = False
+
+try:
+    # Usiamo get_path per caricare i file sonori
+    sound_drop = pygame.mixer.Sound(get_path("drop.wav"))
+    sound_win = pygame.mixer.Sound(get_path("win.wav"))
+    sound_click = pygame.mixer.Sound(get_path("click.wav"))
+
+    pygame.mixer.music.load(get_path("background_music.mp3"))
+    pygame.mixer.music.set_volume(0.4)
+    pygame.mixer.music.play(-1)
+    music_loaded = True
+except Exception as e:
+    print(f"Nota: Audio non caricato (controlla se i file esistono): {e}")
+    sound_drop = sound_win = sound_click = None
+
+def play_effect(sound):
+    if not audio_muted and sound:
+        sound.play()
+
+def toggle_audio():
+    global audio_muted
+    audio_muted = not audio_muted
+    if not music_loaded:
+        return
+    if audio_muted:
+        pygame.mixer.music.pause()
+        mute_btn.config(text="AUDIO: OFF", fg="#666")
+    else:
+        pygame.mixer.music.unpause()
+        mute_btn.config(text="AUDIO: ON", fg=GOLD)
 
 # ---------------- FINESTRA ----------------
 root = tk.Tk()
@@ -29,14 +74,15 @@ root.configure(bg=BG_COLOR)
 
 # --- CARICAMENTO IMMAGINE DI SFONDO ---
 try:
-    bg_image_raw = Image.open("sfondo4InLine.jpg")
+    # Usiamo get_path per caricare l'immagine di sfondo
+    bg_image_raw = Image.open(get_path("sfondo4InLine.png"))
     bg_image_raw = bg_image_raw.resize((WINDOW_WIDTH, WINDOW_HEIGHT), Image.Resampling.LANCZOS)
     bg_photo = ImageTk.PhotoImage(bg_image_raw)
 except Exception as e:
-    print(f"Errore caricamento immagine: {e}")
+    print(f"Nota: Immagine di sfondo non caricata: {e}")
     bg_photo = None
 
-# ---------------- VARIABILI ----------------
+# ---------------- VARIABILI DI GIOCO ----------------
 board = [[None]*COLS for _ in range(ROWS)]
 current_player = BLACK_PIECE
 game_over = False
@@ -53,11 +99,6 @@ PLAYER_COLORS = ["#000000", "#D4AF37", "#C0392B", "#2980B9", "#27AE60", "#8E44AD
 history = []
 stats = {"Nero": 0, "Oro": 0, "Pareggio": 0, "Totali": 0}
 
-hud_brightness = 0
-hud_direction = 1
-win_anim_step = 0
-win_anim_direction = 1
-
 # ---------------- UTILITY ----------------
 def copy_board(b):
     return [row[:] for row in b]
@@ -72,7 +113,6 @@ def switch_screen(show):
 
 def save_history(result):
     stats["Totali"] += 1
-    # Gestione nomi per statistiche
     stat_key = "Nero" if "Nero" in result else "Oro" if "Oro" in result else result
     if stat_key in stats:
         stats[stat_key] += 1
@@ -82,21 +122,65 @@ def save_history(result):
         "board": copy_board(board),
         "winning": winning_cells[:]
     })
-    del history[10:] # Teniamo le ultime 10
+    del history[10:]
 
 def hover(btn, enter=True):
     btn.config(bg=BTN_HOVER if enter else BTN_BG)
 
+# ---------------- PARTICELLE E GHOST ----------------
+import random
+
+def create_particles(x, y, color):
+    for _ in range(12):
+        dx = random.randint(-8, 8)
+        dy = random.randint(-12, 4)
+        p = canvas.create_oval(x-3, y-3, x+3, y+3, fill=color, outline="")
+        animate_particle(p, dx, dy, 15)
+
+def animate_particle(p, dx, dy, life):
+    if life > 0:
+        canvas.move(p, dx, dy)
+        root.after(30, lambda: animate_particle(p, dx, dy + 1, life - 1))
+    else:
+        canvas.delete(p)
+
+def screen_shake(intensity=4):
+    def shake(count):
+        if count > 0:
+            dx, dy = random.randint(-intensity, intensity), random.randint(-intensity, intensity)
+            canvas.move("all", dx, dy)
+            root.after(20, lambda: [canvas.move("all", -dx, -dy), shake(count-1)])
+    shake(4)
+
+def mouse_move(e):
+    global ghost_col
+    if game_over or is_animating or not show_ghost:
+        if ghost_col != -1:
+            ghost_col = -1
+            draw_board()
+        return
+    col = e.x // CELL_SIZE
+    if col != ghost_col and col < COLS:
+        ghost_col = col
+        draw_board()
+
 # ---------------- LOGICA DI GIOCO ----------------
 def start_new_game():
     global board, current_player, game_over, winner, winning_cells, game_started, ROWS, COLS
+    
+    if not audio_muted and music_loaded and not pygame.mixer.music.get_busy():
+        pygame.mixer.music.play(-1)
+
     if game_mode == "PVP":
         setup_pvp_board(len(players))
         current_player = players[0]
     else:
+        # Reset a modalità normale 6x7
         ROWS, COLS = 6, 7
         board = [[None]*COLS for _ in range(ROWS)]
         current_player = BLACK_PIECE
+        root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
+        canvas.config(width=COLS*CELL_SIZE, height=ROWS*CELL_SIZE)
 
     game_over = False
     winner = None
@@ -112,6 +196,11 @@ def setup_pvp_board(n):
     ROWS = 6 + extra
     COLS = 7 + extra
     board = [[None]*COLS for _ in range(ROWS)]
+    
+    # calcola dimensioni finestra per far stare tutto
+    new_width = max(WINDOW_WIDTH, COLS * CELL_SIZE + 40)
+    new_height = max(WINDOW_HEIGHT, ROWS * CELL_SIZE + 150)
+    root.geometry(f"{new_width}x{new_height}")
     canvas.config(width=COLS*CELL_SIZE, height=ROWS*CELL_SIZE)
 
 def update_status():
@@ -161,13 +250,21 @@ def finalize_drop(col, row):
     global current_player, game_over, winner, is_animating, current_player_index
     board[row][col] = current_player
     is_animating = False
+    
+    play_effect(sound_drop)
+
     if check_win(row, col):
         game_over = True
+        if music_loaded and not audio_muted:
+            pygame.mixer.music.fadeout(1000)
+        play_effect(sound_win)
+        
         winner = f"Giocatore {current_player_index+1}" if game_mode=="PVP" else ("Nero" if current_player==BLACK_PIECE else "Oro")
         draw_board(highlight=winning_cells)
         save_history(winner)
         update_status()
         return
+    
     draw_board()
     if all(board[0][c] for c in range(COLS)):
         game_over = True
@@ -209,7 +306,7 @@ def click(e):
                 animate_drop(col, r)
                 return
 
-# ---------------- SCHERMATE SPECIALI ----------------
+# ---------------- SCHERMATE ----------------
 def show_history():
     for w in history_list.winfo_children(): w.destroy()
     if not history:
@@ -218,7 +315,7 @@ def show_history():
         for i, h in enumerate(history):
             btn = tk.Button(history_list, text=f"{i+1}) Vincitore: {h['winner']}", 
                            bg=BTN_BG, fg=GOLD, font=("Helvetica", 12),
-                           command=lambda x=h: preview_history(x))
+                           command=lambda x=h: [play_effect(sound_click), preview_history(x)])
             btn.pack(fill="x", pady=4, padx=20)
     switch_screen(history_frame)
 
@@ -239,7 +336,8 @@ def show_stats():
     tk.Label(stats_frame, text="STATISTICHE", font=("Impact", 42), fg=GOLD, bg=BG_COLOR).pack(pady=30)
     for k, v in stats.items():
         tk.Label(stats_frame, text=f"{k}: {v}", fg=TEXT_WHITE, bg=BG_COLOR, font=("Helvetica", 18)).pack(pady=5)
-    tk.Button(stats_frame, text="INDIETRO", font=BTN_FONT, bg=BTN_BG, fg=GOLD, command=lambda: switch_screen(menu_frame)).pack(pady=30)
+    tk.Button(stats_frame, text="INDIETRO", font=BTN_FONT, bg=BTN_BG, fg=GOLD, 
+              command=lambda: [play_effect(sound_click), switch_screen(menu_frame)]).pack(pady=30)
     switch_screen(stats_frame)
 
 # ---------------- DEFINIZIONE FRAME ----------------
@@ -250,18 +348,18 @@ game_frame = tk.Frame(root, bg=BG_COLOR)
 history_frame = tk.Frame(root, bg=BG_COLOR)
 stats_frame = tk.Frame(root, bg=BG_COLOR)
 
-# ---------------- MENU CON SFONDO ----------------
+# ---------------- MENU ----------------
 menu_canvas = tk.Canvas(menu_frame, width=WINDOW_WIDTH, height=WINDOW_HEIGHT, highlightthickness=0)
 menu_canvas.pack(fill="both", expand=True)
 
 if bg_photo:
     menu_canvas.create_image(0, 0, image=bg_photo, anchor="nw")
 
-#menu_canvas.create_text(WINDOW_WIDTH//2, 120, text="4 IN LINE", font=TITLE_FONT, fill=GOLD)
-#menu_canvas.create_text(WINDOW_WIDTH//2, 190, text="THE GOLD EDITION", font=("Helvetica", 18, "bold"), fill=TEXT_WHITE)
-
 def add_menu_button(text, cmd, y):
-    b = tk.Button(root, text=text, font=BTN_FONT, bg=BTN_BG, fg=GOLD, width=22, relief="flat", command=cmd)
+    def wrapper():
+        play_effect(sound_click)
+        cmd()
+    b = tk.Button(root, text=text, font=BTN_FONT, bg=BTN_BG, fg=GOLD, width=22, relief="flat", command=wrapper)
     b.bind("<Enter>", lambda e: hover(b, True))
     b.bind("<Leave>", lambda e: hover(b, False))
     menu_canvas.create_window(WINDOW_WIDTH//2, y, window=b)
@@ -269,34 +367,30 @@ def add_menu_button(text, cmd, y):
 add_menu_button("NUOVA PARTITA", lambda: switch_screen(mode_frame), 320)
 add_menu_button("CRONOLOGIA", show_history, 400)
 add_menu_button("STATISTICHE", show_stats, 480)
-#menu_canvas.create_text(WINDOW_WIDTH//2, 650, text="© D&G SoftwareHouse", fill="#AAA", font=SUB_FONT)
 
 # ---------------- SELEZIONE MODALITÀ ----------------
 tk.Label(mode_frame, text="MODALITÀ", font=("Impact", 42), fg=GOLD, bg=BG_COLOR).pack(pady=40)
-def mode_btn(txt, sub, m):
-    f = tk.Frame(mode_frame, bg=BTN_BG, padx=10, pady=5)
-    f.pack(pady=10)
-    b = tk.Button(f, text=txt, font=BTN_FONT, bg=BTN_BG, fg=GOLD, width=25, relief="flat", 
-                 command=lambda: [setattr(root, 'gm', m), select_mode(m)])
-    b.pack()
-    tk.Label(f, text=sub, fg=TEXT_WHITE, bg=BTN_BG, font=("Helvetica", 10)).pack()
-
 def select_mode(m):
     global game_mode
     game_mode = m
+    play_effect(sound_click)
     if m == "PVP": switch_screen(pvp_frame)
     else: start_new_game()
 
-mode_btn("NORMALE", "2 Giocatori - Griglia Classica", "NORMAL")
-mode_btn("PVP MULTI", "Fino a 8 Giocatori - Griglia Dinamica", "PVP")
-tk.Button(mode_frame, text="INDIETRO", font=BTN_FONT, bg=BTN_BG, fg=GOLD, command=lambda: switch_screen(menu_frame)).pack(pady=20)
+tk.Button(mode_frame, text="NORMALE", font=BTN_FONT, bg=BTN_BG, fg=GOLD, width=25, 
+          command=lambda: select_mode("NORMAL")).pack(pady=10)
+tk.Button(mode_frame, text="PVP MULTI", font=BTN_FONT, bg=BTN_BG, fg=GOLD, width=25, 
+          command=lambda: select_mode("PVP")).pack(pady=10)
+tk.Button(mode_frame, text="INDIETRO", font=BTN_FONT, bg=BTN_BG, fg=GOLD, 
+          command=lambda: [play_effect(sound_click), switch_screen(menu_frame)]).pack(pady=20)
 
-# ---------------- SELEZIONE GIOCATORI PVP ----------------
+# ---------------- PVP ----------------
 tk.Label(pvp_frame, text="QUANTI GIOCATORI?", font=("Impact", 36), fg=GOLD, bg=BG_COLOR).pack(pady=30)
 def set_pvp(n):
     global players, current_player_index
     players = PLAYER_COLORS[:n]
     current_player_index = 0
+    play_effect(sound_click)
     start_new_game()
 
 for i in range(2, 9):
@@ -306,9 +400,16 @@ for i in range(2, 9):
 # ---------------- GAME UI ----------------
 game_top = tk.Frame(game_frame, bg=BG_COLOR)
 game_top.pack(fill="x", pady=10)
+
 status_label = tk.Label(game_top, text="", font=("Helvetica", 20, "bold"), bg=BG_COLOR)
-status_label.pack(side="left", padx=50)
-tk.Button(game_top, text="MENU", bg=BTN_BG, fg=GOLD, font=BTN_FONT, command=lambda: switch_screen(menu_frame)).pack(side="right", padx=50)
+status_label.pack(side="left", padx=30)
+
+tk.Button(game_top, text="MENU", bg=BTN_BG, fg=GOLD, font=BTN_FONT, 
+          command=lambda: [play_effect(sound_click), switch_screen(menu_frame)]).pack(side="right", padx=20)
+
+mute_btn = tk.Button(game_top, text="AUDIO: ON", bg=BTN_BG, fg=GOLD, font=BTN_FONT, 
+                     width=10, command=toggle_audio)
+mute_btn.pack(side="right", padx=10)
 
 canvas = tk.Canvas(game_frame, bg=BG_COLOR, highlightthickness=0)
 canvas.pack(pady=20)
@@ -318,8 +419,8 @@ canvas.bind("<Button-1>", click)
 tk.Label(history_frame, text="CRONOLOGIA", font=("Impact", 42), fg=GOLD, bg=BG_COLOR).pack(pady=20)
 history_list = tk.Frame(history_frame, bg=BG_COLOR)
 history_list.pack(fill="both", expand=True)
-tk.Button(history_frame, text="INDIETRO", font=BTN_FONT, bg=BTN_BG, fg=GOLD, command=lambda: switch_screen(menu_frame)).pack(pady=20)
+tk.Button(history_frame, text="INDIETRO", font=BTN_FONT, bg=BTN_BG, fg=GOLD, 
+          command=lambda: [play_effect(sound_click), switch_screen(menu_frame)]).pack(pady=20)
 
-# ---------------- AVVIO ----------------
 switch_screen(menu_frame)
 root.mainloop()
