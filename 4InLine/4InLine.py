@@ -20,7 +20,7 @@ GOLD_PIECE = "#D4AF37"
 
 ROWS, COLS = 6, 7
 CELL_SIZE = 80
-WINDOW_WIDTH, WINDOW_HEIGHT = 1024, 900
+WINDOW_WIDTH, WINDOW_HEIGHT = 1024, 850
 DROP_SPEED = 14
 
 TITLE_FONT = ("Impact", 56)
@@ -29,6 +29,7 @@ BTN_BG = "#1E1E1E"
 BTN_HOVER = "#2A2A2A"
 
 # ---------------- INIZIALIZZAZIONE AUDIO ----------------
+#i suoni sono stati presi da pixabay (no copyright)
 pygame.mixer.init()
 audio_muted = False
 music_loaded = False
@@ -82,7 +83,7 @@ game_over = False
 winner = None
 winning_cells = []
 is_animating = False
-game_mode = None # "NORMAL", "PVP", "CPU"
+game_mode = None
 
 players = []
 current_player_index = 0
