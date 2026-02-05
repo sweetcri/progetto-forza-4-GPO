@@ -65,7 +65,7 @@ def toggle_audio():
 root = tk.Tk()
 root.title("4inLine - Gold Edition")
 root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
-root.resizable(False, False)
+root.resizable(True, True)
 root.configure(bg=BG_COLOR)
 
 try:
@@ -118,9 +118,9 @@ def get_valid_row(b, col):
         if b[r][col] is None: return r
     return None
 
+#immagina una mossa che potrebbe vincere
 def simulate_win(b, row, col, player):
     b[row][col] = player
-    # Temporaneo check win semplificato per simulazione
     win = False
     for dx, dy in [(1,0),(0,1),(1,1),(1,-1)]:
         count = 1
